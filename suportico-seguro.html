@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SuPórtico - Assistente de Manuais Normativos</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #64748b;
+            --light-bg: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-color: #334155;
+            --assistant-bg: #f1f5f9;
+            --user-bg: #2563eb;
+            --user-text: #ffffff;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 24px;
+        }
+        
+        header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 16px;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-right: 12px;
+        }
+        
+        h1 {
+            color: var(--text-color);
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .docs-section {
+            margin-bottom: 24px;
+            padding: 16px;
+            background-color: var(--light-bg);
+            border-radius: 8px;
+        }
+        
+        .docs-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .docs-title h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .docs-icon {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .docs-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        
+        .doc-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .doc-icon {
+            margin-right: 8px;
+            color: var(--secondary-color);
+        }
+        
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .message {
+            margin-bottom: 16px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: var(--user-bg);
+            color: var(--user-text);
+            align-self: flex-end;
+        }
+        
+        .assistant-message {
+            background-color: var(--assistant-bg);
+            color: var(--text-color);
+            align-self: flex-start;
+        }
+        
+        .chat-input {
+            display: flex;
+            padding: 16px;
+            background-color: white;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        #question-input {
+            flex-grow: 1;
+            padding: 14px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            margin-right: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        #question-input:focus {
+            border-color: var(--primary-color);
+        }
+        
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        
+        button:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        .loading {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            padding: 8px 16px;
+            border-radius: 16px;
+            background-color: var(--light-bg);
+        }
+        
+        .spinner {
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border-left-color: var(--primary-color);
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .citation {
+            font-size: 14px;
+            color: var(--secondary-color);
+            margin-top: 4px;
+            font-style: italic;
+        }
+        
+        .highlight {
+            background-color: rgba(255, 230, 0, 0.3);
+            padding: 0 2px;
+            border-radius: 3px;
+        }
+        
+        .api-key-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .api-key-container {
+            background-color: white;
+            border-radius: 12px;
+            padding: 24px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .api-key-container h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+        
+        .api-key-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 16px;
+        }
+        
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+        }
+        
+        .checkbox-container input {
+            margin-right: 8px;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 16px;
+        }
+        
+        .api-key-button {
+            margin-left: 12px;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .docs-list {
+                grid-template-columns: 1fr 1fr;
+            }
+            .chat-container {
+                height: 400px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .docs-list {
+                grid-template-columns: 1fr;
+            }
+            body {
+                padding: 12px;
+            }
+            .container {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Modal de configuração da API -->
+    <div class="api-key-overlay" id="api-key-overlay">
+        <div class="api-key-container">
+            <h2>Configuração do SuPórtico</h2>
+            <p>Para utilizar o assistente, é necessário configurar a chave de API do Claude.</p>
+            <p>Insira a chave de API abaixo:</p>
+            <input type="password" id="api-key-input" class="api-key-input" placeholder="Insira a chave de API do Claude">
+            <div class="checkbox-container">
+                <input type="checkbox" id="remember-api-key">
+                <label for="remember-api-key">Lembrar chave neste dispositivo</label>
+            </div>
+            <div class="button-container">
+                <button id="api-key-save" class="api-key-button">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header>
+            <div class="logo">SuPórtico</div>
+            <h1>Assistente de Manuais Normativos</h1>
+        </header>
+        
+        <div class="docs-section">
+            <div class="docs-title">
+                <div class="docs-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"></path>
+                    </svg>
+                </div>
+                <h2>Manuais Normativos Disponíveis</h2>
+            </div>
+            
+            <div class="docs-list" id="docs-list">
+                <!-- Os documentos estáticos serão carregados aqui -->
+            </div>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chat-messages">
+                <div class="message assistant-message">
+                    Olá! Sou o SuPórtico, seu assistente de manuais normativos. Como posso ajudar você hoje?
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Processando sua pergunta...</span>
+            </div>
+            
+            <div class="chat-input">
+                <input type="text" id="question-input" placeholder="Digite sua pergunta sobre os manuais normativos...">
+                <button id="send-btn">Enviar</button>
+            </div>
+        </div>
+        
+        <div style="margin-top: 16px; text-align: right;">
+            <button id="config-btn" style="background-color: var(--secondary-color);">Configurações</button>
+        </div>
+    </div>
+
+    <script>
+        // Configurações da API do Claude
+        let CLAUDE_API_KEY = '';
+        const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+        
+        // Base de conhecimento com documentos estáticos
+        const staticDocuments = [
+            {
+                id: 'manual-001',
+                title: 'ANÁLISE DE RISCO DE CRÉDITO E IDENTIFICAÇÃO DA RENDA',
+                type: 'pdf',
+                content: `ANÁLISE DE RISCO DE CRÉDITO E IDENTIFICAÇÃO DA RENDA
+
+1. INTRODUÇÃO
+Este normativo estabelece diretrizes para análise de risco de crédito e identificação da renda de clientes pessoa física, visando mitigar riscos na concessão de crédito imobiliário.
+
+2. PÚBLICO-ALVO
+Aplicável a todos os colaboradores envolvidos no processo de concessão de crédito imobiliário para pessoa física.
+
+3. ANÁLISE DE RISCO DE CRÉDITO
+3.1. Critérios Gerais
+- Avaliação da capacidade de pagamento do cliente
+- Histórico de crédito e pontualidade
+- Comprometimento de renda
+- Análise documental completa
+- Consulta a órgãos de proteção ao crédito
+
+3.2. Requisitos Mínimos
+- Score de crédito mínimo de 700 pontos
+- Ausência de restrições ativas em órgãos de proteção ao crédito
+- Comprovação de renda compatível com o financiamento solicitado
+- Limite máximo de comprometimento de renda: 30% da renda bruta mensal
+- Idade mínima: 18 anos
+- Idade máxima ao final do contrato: 80 anos
+
+4. IDENTIFICAÇÃO E COMPROVAÇÃO DE RENDA
+4.1. Documentação Obrigatória
+- Declaração de Imposto de Renda (última declaração)
+- Contracheques dos últimos 3 meses (assalariados)
+- Extrato bancário dos últimos 6 meses
+- DECORE ou Demonstrativo de Resultados (autônomos e empresários)
+
+4.2. Tipos de Renda Aceitos
+- Renda fixa (salário, aposentadoria, pensão)
+- Renda variável (comissões, bonificações)
+- Pró-labore e distribuição de lucros
+- Rendimentos de aluguel
+- Rendimentos de aplicações financeiras
+
+4.3. Cálculo da Renda
+- Renda fixa: média dos últimos 3 meses
+- Renda variável: média dos últimos 6 meses
+- Renda de autônomos/empresários: média dos últimos 12 meses
+
+5. EXCEÇÕES E ALÇADAS DE APROVAÇÃO
+5.1. Níveis de Alçada
+- Até R$ 500.000: Analista de Crédito Sênior
+- De R$ 500.001 a R$ 1.000.000: Gerente de Crédito
+- De R$ 1.000.001 a R$ 3.000.000: Superintendente de Crédito
+- Acima de R$ 3.000.000: Diretor de Crédito
+
+5.2. Exceções Permitidas
+- Flexibilização de score para clientes com histórico positivo
+- Renda complementar de cônjuge ou companheiro(a)
+- Fiadores ou garantias adicionais
+
+6. VALIDADE DAS ANÁLISES
+- A análise de crédito tem validade de 90 dias
+- Reanálise obrigatória após este prazo`
+            },
+            {
+                id: 'manual-002',
+                title: 'CONCESSÃO DE CRÉDITO IMOBILIÁRIO PARA PESSOA FÍSICA – AQUISIÇÃO E CONSTRUÇÃO',
+                type: 'pdf',
+                content: `CONCESSÃO DE CRÉDITO IMOBILIÁRIO PARA PESSOA FÍSICA – AQUISIÇÃO E CONSTRUÇÃO
+
+1. OBJETIVO
+Estabelecer diretrizes e procedimentos para a concessão de crédito imobiliário nas modalidades de aquisição e construção de imóveis residenciais para pessoas físicas.
+
+2. MODALIDADES DE FINANCIAMENTO
+2.1. Aquisição de Imóvel Residencial
+- Imóvel novo (na planta, em construção ou recém-construído)
+- Imóvel usado (construído há mais de 180 dias)
+
+2.2. Construção Individual
+- Em terreno próprio
+- Com projeto aprovado pelas autoridades competentes
+
+3. CONDIÇÕES GERAIS
+3.1. Limites de Financiamento
+- Imóveis residenciais: até 80% do valor de avaliação ou de compra/venda (o que for menor)
+- Construção: até 80% do custo estimado de construção + valor do terreno
+
+3.2. Prazos
+- Mínimo: 60 meses (5 anos)
+- Máximo: 420 meses (35 anos)
+
+3.3. Sistemas de Amortização
+- SAC (Sistema de Amortização Constante)
+- PRICE (Sistema Francês de Amortização)
+
+3.4. Taxas de Juros
+- Taxas pré-fixadas: a partir de 9,5% a.a.
+- Taxas pós-fixadas: a partir de TR + 9,0% a.a. ou IPCA + 5,0% a.a.
+
+4. REQUISITOS PARA CONCESSÃO
+4.1. Documentação do Imóvel
+- Matrícula atualizada (30 dias)
+- Certidão negativa de ônus reais
+- IPTU quitado do ano corrente
+- Laudo de avaliação emitido por engenheiro credenciado
+
+4.2. Documentação do Solicitante
+- Documentos pessoais (RG, CPF, comprovante de estado civil)
+- Comprovantes de renda conforme normativo específico
+- Declaração de Imposto de Renda
+- Comprovante de residência
+
+5. PROCESSO DE APROVAÇÃO
+5.1. Fluxo Operacional
+- Solicitação e cadastro do cliente
+- Análise de crédito conforme normativo específico
+- Aprovação conforme alçadas
+- Análise jurídica da documentação do imóvel
+- Contratação e registro
+
+5.2. Prazos de Análise
+- Análise de crédito: até 5 dias úteis
+- Análise jurídica: até 10 dias úteis
+- Contratação: até 3 dias úteis após aprovação jurídica
+- Registro: até 30 dias após assinatura do contrato
+
+6. GARANTIAS
+6.1. Garantias Obrigatórias
+- Alienação fiduciária do imóvel objeto do financiamento
+- Seguro habitacional (MIP - Morte e Invalidez Permanente e DFI - Danos Físicos ao Imóvel)
+
+6.2. Garantias Adicionais (quando aplicável)
+- Fiança bancária
+- Fiador(es) pessoa física
+- Alienação de outros bens
+
+7. DESEMBOLSO
+7.1. Aquisição
+- Pagamento único ao vendedor após registro do contrato
+
+7.2. Construção
+- Liberações conforme cronograma físico-financeiro
+- Vistorias técnicas obrigatórias para cada liberação
+- Prazo máximo de construção: 24 meses
+
+8. PORTABILIDADE
+- Aceitação de operações de portabilidade de crédito imobiliário
+- Análise de viabilidade econômica e de risco
+
+9. DISPOSIÇÕES FINAIS
+- Este normativo entra em vigor na data de sua publicação
+- Revogam-se disposições em contrário`
+            }
+        ];
+        
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            const sendBtn = document.getElementById('send-btn');
+            const questionInput = document.getElementById('question-input');
+            const apiKeyOverlay = document.getElementById('api-key-overlay');
+            const apiKeySaveBtn = document.getElementById('api-key-save');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const rememberApiKey = document.getElementById('remember-api-key');
+            const configBtn = document.getElementById('config-btn');
+            
+            // Carregar documentos estáticos
+            loadStaticDocuments();
+            
+            // Verificar se já existe uma chave de API salva
+            const savedApiKey = localStorage.getItem('claude_api_key');
+            if (savedApiKey) {
+                CLAUDE_API_KEY = savedApiKey;
+                apiKeyOverlay.style.display = 'none';
+            }
+            
+            // Evento para salvar a chave de API
+            apiKeySaveBtn.addEventListener('click', function() {
+                const apiKey = apiKeyInput.value.trim();
+                if (apiKey) {
+                    CLAUDE_API_KEY = apiKey;
+                    
+                    // Salvar a chave no localStorage se solicitado
+                    if (rememberApiKey.checked) {
+                        localStorage.setItem('claude_api_key', apiKey);
+                    }
+                    
+                    apiKeyOverlay.style.display = 'none';
+                } else {
+                    alert('Por favor, insira uma chave de API válida.');
+                }
+            });
+            
+            // Evento para mostrar a configuração
+            configBtn.addEventListener('click', function() {
+                apiKeyInput.value = CLAUDE_API_KEY;
+                rememberApiKey.checked = localStorage.getItem('claude_api_key') !== null;
+                apiKeyOverlay.style.display = 'flex';
+            });
+            
+            // Evento para envio de pergunta
+            sendBtn.addEventListener('click', handleQuestion);
+            questionInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleQuestion();
+                }
+            });
+        });
+        
+        // Função para carregar documentos estáticos
+        function loadStaticDocuments() {
+            const docsList = document.getElementById('docs-list');
+            docsList.innerHTML = '';
+            
+            staticDocuments.forEach(doc => {
+                const docItem = document.createElement('div');
+                docItem.className = 'doc-item';
+                
+                // Ícone baseado no tipo de documento
+                const icon = document.createElement('div');
+                icon.className = 'doc-icon';
+                
+                // Usando um SVG simples para representar um documento
+                icon.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                `;
+                
+                const docTitle = document.createElement('div');
+                docTitle.textContent = doc.title;
+                
+                docItem.appendChild(icon);
+                docItem.appendChild(docTitle);
+                docsList.appendChild(docItem);
+            });
+        }
+        
+        // Função para lidar com perguntas
+        async function handleQuestion() {
+            const questionInput = document.getElementById('question-input');
+            const loadingDiv = document.getElementById('loading');
+            const question = questionInput.value.trim();
+            const apiKeyOverlay = document.getElementById('api-key-overlay');
+            
+            if (question === '') {
+                return;
+            }
+            
+            // Verificar se a chave da API está configurada
+            if (!CLAUDE_API_KEY) {
+                apiKeyOverlay.style.display = 'flex';
+                return;
+            }
+            
+            // Adicionar a pergunta ao chat
+            addMessage(question, 'user');
+            questionInput.value = '';
+            
+            // Mostrar indicador de carregamento
+            loadingDiv.style.display = 'flex';
+            
+            try {
+                // Obter resposta usando API do Claude
+                const answer = await getClaudeResponse(question);
+                
+                // Adicionar a resposta ao chat
+                addMessage(answer, 'assistant');
+            } catch (error) {
+                console.error('Erro ao obter resposta:', error);
+                addMessage('Desculpe, ocorreu um erro ao processar sua pergunta. Por favor, verifique sua chave de API e tente novamente.', 'assistant');
+            } finally {
+                // Esconder indicador de carregamento
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        // Função para adicionar mensagens ao chat
+        function addMessage(text, sender) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageElement = document.createElement('div');
+            
+            messageElement.className = `message ${sender}-message`;
+            
+            // Processar texto para destacar citações, se for uma mensagem do assistente
+            if (sender === 'assistant') {
+                // Implementar formatação de destaque para citações
+                const formattedText = formatAssistantMessage(text);
+                messageElement.innerHTML = formattedText;
+            } else {
+                messageElement.textContent = text;
+            }
+            
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Função para formatar a mensagem do assistente
+        function formatAssistantMessage(text) {
+            // Processar texto para adicionar formatação, citações, etc.
+            // Substituir referências aos documentos com citações
+            
+            // Exemplo simples: destacar termos importantes
+            staticDocuments.forEach(doc => {
+                // Pegar palavras-chave do título do documento
+                const keywords = doc.title.split(' ')
+                    .filter(word => word.length > 3)
+                    .map(word => word.toLowerCase());
+                
+                // Destacar referências ao documento
+                keywords.forEach(keyword => {
+                    const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+                    text = text.replace(regex, match => `<span class="highlight">${match}</span>`);
+                });
+            });
+            
+            // Formatação de parágrafos
+            const paragraphs = text.split('\n\n');
+            return paragraphs.map(p => `<p>${p}</p>`).join('');
+        }
+        
+        // Função para obter resposta do Claude
+        async function getClaudeResponse(question) {
+            // Preparar o contexto com os documentos relevantes
+            const context = prepareContextForClaude(question);
+            
+            // Chamar a API do Claude
+            const response = await callClaudeAPI(question, context);
+            
+            return response;
+        }
+        
+        // Função para preparar o contexto para o Claude
+        function prepareContextForClaude(question) {
+            // Analisar a pergunta e encontrar documentos relevantes
+            const questionLower = question.toLowerCase();
+            
+            // Palavras-chave específicas para cada documento
+            const creditoKeywords = ['crédito', 'renda', 'análise', 'risco', 'score', 'documentação', 'comprovação'];
+            const imobiliarioKeywords = ['imobiliário', 'aquisição', 'construção', 'financiamento', 'imóvel', 'residencial', 'taxa'];
+            
+            // Verificar quais documentos são mais relevantes para a pergunta
+            let relevantDocs = [];
+            
+            // Se a pergunta contém palavras-chave sobre crédito
+            if (creditoKeywords.some(keyword => questionLower.includes(keyword))) {
+                relevantDocs.push(staticDocuments.find(doc => doc.id === 'manual-001'));
+            }
+            
+            // Se a pergunta contém palavras-chave sobre crédito imobiliário
+            if (imobiliarioKeywords.some(keyword => questionLower.includes(keyword))) {
+                relevantDocs.push(staticDocuments.find(doc => doc.id === 'manual-002'));
+            }
+            
+            // Se não conseguimos determinar quais documentos são relevantes, usamos todos
+            if (relevantDocs.length === 0) {
+                relevantDocs = staticDocuments;
+            }
+            
+            // Remover duplicatas
+            relevantDocs = [...new Set(relevantDocs)];
+            
+            // Construir o contexto
+            let context = "Documentos de referência:\n\n";
+            
+            relevantDocs.forEach(doc => {
+                context += `[${doc.title}]\n${doc.content}\n\n`;
+            });
+            
+            return context;
+        }
+        
+        // Função para chamar a API do Claude
+        async function callClaudeAPI(question, context) {
+            try {
+                const response = await fetch(CLAUDE_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': CLAUDE_API_KEY,
+                        'anthropic-version': '2023-06-01'
+                    },
+                    body: JSON.stringify({
+                        model: 'claude-3-sonnet-20240229',
+                        messages: [
+                            {
+                                role: 'user',
+                                content: `Contexto dos manuais normativos: 
+                                ${context}
+                                
+                                Você é o SuPórtico, um assistente especializado em consultas sobre manuais normativos.
+                                Responda de forma direta e objetiva, citando os trechos relevantes dos manuais.
+                                Dê respostas concisas, sem introduções desnecessárias.
+                                
+                                Com base APENAS nos manuais normativos fornecidos acima, responda à seguinte pergunta:
+                                ${question}`
+                            }
+                        ],
+                        max_tokens: 1000
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Erro na API:', data.error);
+                    return `Desculpe, ocorreu um erro ao processar sua pergunta. Por favor, tente novamente mais tarde. (Erro: ${data.error.message || 'desconhecido'})`;
+                }
+                
+                return data.content[0].text;
+            } catch (error) {
+                console.error('Erro na chamada à API do Claude:', error);
+                return "Desculpe, não foi possível conectar à API do Claude. Por favor, verifique sua conexão com a internet e tente novamente.";
+            }
+        }
+    </script>
+</body>
+</html>
